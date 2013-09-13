@@ -6,6 +6,7 @@
 from demonstrator import *
 from tkinter.filedialog import *
 from tkinter import Tk, StringVar, ttk
+from PIL import ImageTk, Image
 import os
 
 
@@ -17,6 +18,8 @@ class TaskGUI():
         
         
         # FRAMES Below >>>
+        logoFrame = Frame(master)
+        logoFrame.grid(row=0,column=1,sticky=W)
         title     = Frame(master,)
         title.grid(row=1,column=2,sticky = W)
         header    = Frame(master, )
@@ -55,8 +58,16 @@ class TaskGUI():
 
 
         #Header >>>
-        Label(header,height=5,).grid(row=2, column=1) # GAP FOR TITLE
-        Label(title,).grid(row=1, column=1)#Gap from top
+        imgLogo = Canvas(logoFrame, width=420, height=115)
+        imgLogo.grid(row=1,column=1)
+        self.img = PhotoImage( file = 'logo.gif')
+        imgLogo.create_image(10,10, image = self.img, anchor= NW)
+        
+            
+##        self.imgLogo = ImageTk.PhotoImage(Image.open('logo.gif'))
+##        logo = Label(logoFrame,image=self.imgLogo)
+##        logo.grid(row=1)
+        Label(title,height=1).grid(row=1, column=1)#Gap from top
         #Label(title, font='mono -36 bold', text="Project PY").grid(column=2,sticky=E)
         Label(header,width=3).grid(row=3,column=0,sticky=W)
         Label(header,text='File name: ', font='cornsilk -20 bold').grid(row=3, column=1, sticky=W)

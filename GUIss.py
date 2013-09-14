@@ -15,7 +15,7 @@ class TaskGUI():
 
         self.browseActive= False    # Indicate that btn browse have not been used.
         self.activeBR = False       # Idicate wether break down have been used.
-        
+        self.processUsed = False    # Idicate wether calculation have been done.
         
         # FRAMES Below >>>
         logoFrame = Frame(master)
@@ -32,30 +32,28 @@ class TaskGUI():
 
         gapBR     = Frame(self.mainBody, width=20,)
         gapBR.grid(row=2,column=3)
-        
+
+        # Content
+        # Staff canvas
         self.fieldList = Frame(self.mainBody) # Name list
         self.fieldList.grid(row=2,column=2, sticky=W)
-        
-        self.bodySummary = Frame (self.mainBody,bg= 'yellow')
-        self.bodySummary.grid(row=4,column=2, sticky = W)
 
+        
+        #/Staff canvas
+        
         self.bottom  = Frame(self.mainBody,width=10,height=10,)
         self.bottom.grid(row=6,column=2, sticky=W)
 
-
+        # /Content
+        
         # SUMMAARY
         self.gapSUM = Frame(self.mainBody, width=10, bg='green')
         self.gapSUM.grid(row= 1, column=4)
         self.fieldSummary =Frame(self.mainBody,)
         self.fieldSummary.grid(row=2, column=5, sticky= W)
-
-        
-        
-        
         #/SUMMARY
+        
         #/Frame >>>
-
-
 
         #Header >>>
         imgLogo = Canvas(logoFrame, width=420, height=115)
@@ -64,9 +62,6 @@ class TaskGUI():
         imgLogo.create_image(10,10, image = self.img, anchor= NW)
         
             
-##        self.imgLogo = ImageTk.PhotoImage(Image.open('logo.gif'))
-##        logo = Label(logoFrame,image=self.imgLogo)
-##        logo.grid(row=1)
         Label(title,height=1).grid(row=1, column=1)#Gap from top
         #Label(title, font='mono -36 bold', text="Project PY").grid(column=2,sticky=E)
         Label(header,width=3).grid(row=3,column=0,sticky=W)
@@ -102,9 +97,12 @@ class TaskGUI():
         self.total = Label(self.bottom,width=9, font= 'arial -30 bold',  bg='lightblue')
         self.total.grid(row=2, column=3,sticky=E)
         
+        
     def process_file(self, ev=None):
         '''Open the choosen file by calling Demonstrator Class'''
         
+        if self.processUsed == True:
+            self.leftFrame.destroy()
         filename=self.box.get() # gets value from self.box
         if self.browseActive == True:
             if self.check_combo(self.browsedFile) == True: # Add only to combo box
@@ -116,7 +114,7 @@ class TaskGUI():
         self.listAllStaff()
         self.staff_Frame()
         self.notify()
-        #self.work_out_rows(self.reader.displayRow())
+        self.processUsed = True
         
 
     def open_file(self):
@@ -140,25 +138,48 @@ class TaskGUI():
         self.box_value = StringVar()
         self.box = ttk.Combobox(frame, textvariable=self.box_value,
                                 state='readonly') # Creates a combo box
-        self.fileUsed=['Demo.xlsx'] # Default combo list
+        self.fileUsed=['Demomax.xlsx'] # Default combo list
         self.box['values'] = (self.fileUsed) 
         self.box.current(0) # Current value
         self.box.grid(row=3, column=2)
-
-    def listAllStaff(self):
-        ''' Make a list of all staff '''
+    
+    def myfunction(self,event):
+        '''Creates Scroll bar for Canvas'''
         
+        self.staffCanvas.configure(scrollregion = self.staffCanvas.bbox("all"),width=312, height=400)
+
+    def listAllStaff(self,):
+        ''' Make a list of all staff '''
+
+        self.leftFrame = Frame (self.mainBody,)
+        self.leftFrame.grid(row=4,column=2, sticky = W)
+        
+        self.leftCanvas(self.leftFrame)
         line=1
         self.var  = IntVar() #  Must be self. to disable hover.
         staffName = self.reader.staffName()
         for name in staffName:
-            self.NameList  = Radiobutton (self.bodySummary, width=15, text= staffName[name], font= 'arial -20 bold',
+            self.NameList  = Radiobutton (self.bodySummary, width=17, text= staffName[name], font= 'arial -20 bold',
                                bg='grey', anchor= W, variable = self.var, value = name, pady = 0,
                                           ).grid(row=line, column=2, sticky=W)
             amount = self.get_Total_Cost_By_Name(name)
             self.TotalCost = Label (self.bodySummary,pady=3, width=10, text="\u00A3"+str(amount), font= 'arial -20 bold',
-                                bg='grey').grid(row=line, column=3)
+                                bg='grey', ancho=W).grid(row=line, column=3,)
             line +=1
+
+    def leftCanvas(self,frame):
+        '''creates canvas for stafff'''
+
+
+        self.staffCanvas = Canvas (self.leftFrame,)  # 1
+        self.bodySummary = Frame (self.staffCanvas) #2
+        myscrollbar = Scrollbar(self.leftFrame, orient="vertical", command=self.staffCanvas.yview) #3
+        self.staffCanvas.configure(yscrollcommand = myscrollbar.set) #4
+        myscrollbar.pack(side="right",fill='y') #5
+        self.staffCanvas.pack(side="left") #6
+        self.staffCanvas.create_window((0,0), window=self.bodySummary, anchor= 'nw')
+        self.leftFrame.bind("<Configure>", self.myfunction)
+            
     def get_Total_Cost_By_Name(self,ID):
         '''Displays cost for each staff '''
         
@@ -241,7 +262,7 @@ class TaskGUI():
             line +=1
             
     def destroy_Break_Down(self):
-        '''Destroys two frames '''
+        '''Destroys frames '''
         
         self.body.destroy()
         self.field.destroy()
@@ -252,14 +273,12 @@ class TaskGUI():
         
         self.total['text'] = str(self.reader.displayTotalSum())
 
- 
-
     def quitMessage(self,):
         '''Exit programme'''
         
-##        message = messagebox.askyesno(title="Quit", message="Are you sure want to exit?",icon= "warning")    
-##        if message:
-        top.destroy() # On Yes exits application.
+        message = messagebox.askyesno(title="Quit", message="Are you sure want to exit?",icon= "warning")    
+        if message:
+            top.destroy() # On Yes exits application.
 
 
 if __name__ == "__main__":

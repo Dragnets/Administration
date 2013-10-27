@@ -8,18 +8,23 @@ from tkinter.filedialog import *
 from tkinter import Tk, StringVar, ttk
 from PIL import ImageTk, Image
 import os
+import ctypes
 
 
 class TaskGUI():
-    def __init__(self,master):
+    def __init__(self,master,height,width):
 
         self.browseActive= False    # Indicate that btn browse have not been used.
         self.activeBR = False       # Idicate wether break down have been used.
         self.processUsed = False    # Idicate wether calculation have been done.
+        self.canvasID = 1
         
         # FRAMES Below >>>
         logoFrame = Frame(master)
         logoFrame.grid(row=0,column=1,sticky=W)
+
+        logo2Frame = Frame(master)
+        logo2Frame.place(x=height-300,y=width-150)
         title     = Frame(master,)
         title.grid(row=1,column=2,sticky = W)
         header    = Frame(master, )
@@ -49,8 +54,7 @@ class TaskGUI():
         # SUMMAARY
         self.gapSUM = Frame(self.mainBody, width=10, bg='green')
         self.gapSUM.grid(row= 1, column=4)
-        self.fieldSummary =Frame(self.mainBody,)
-        self.fieldSummary.grid(row=2, column=5, sticky= W)
+        #FIELDSUMARY WAS HERE
         #/SUMMARY
         
         #/Frame >>>
@@ -60,29 +64,35 @@ class TaskGUI():
         imgLogo.grid(row=1,column=1)
         self.img = PhotoImage( file = 'logo.gif')
         imgLogo.create_image(10,10, image = self.img, anchor= NW)
+
+        imgLogo2 = Canvas(logo2Frame)
+        imgLogo2.grid(row=1,column=1)
+        self.img2 = PhotoImage( file = 'thebrighterchoice.gif')
+        imgLogo2.create_image(10,10, image = self.img2, anchor=NW)
         
             
         Label(title,height=1).grid(row=1, column=1)#Gap from top
         #Label(title, font='mono -36 bold', text="Project PY").grid(column=2,sticky=E)
         Label(header,width=3).grid(row=3,column=0,sticky=W)
-        Label(header,text='File name: ', font='cornsilk -20 bold').grid(row=3, column=1, sticky=W)
+        Label(header,text='File name: ', font='cornsilk -30 bold').grid(row=3, column=1, sticky=W)
         Label(header,width=2).grid(row=3, column=3) #SPACE
 
-        self.combo(header)
+        self.box = Label(header,width=20,font='arial -20 bold',relief=SUNKEN,anchor=W)
+        self.box.grid(row=3, column=2)
         
-        Button(header, text='Browse...',width=10,font='mono -15 bold', bg='lightblue',
+        Button(header, text='Browse...',width=10,font='mono -20 bold', bg='lightblue',
                command=self.open_file).grid(row=3, column=4,)
         Label(header,width=3,).grid(row=3, column=5) # SPACE
-        Button(header, text="Process",width=20,font='mono -15 bold',bg='lightgreen',
-               command=self.process_file).grid(row=3, column=6,)
-        Label(header,width=3).grid(row=3, column=7)
-        Button (header, text="Show Expenses", width = 15, font = 'mono -15 bold',
-                command=self.break_Down).grid(row=3, column=8)
+##        Button(header, text="Process",width=20,font='mono -20 bold',bg='lightgreen',
+##               command=self.process_file).grid(row=3, column=6,)
+##        Label(header,width=3).grid(row=3, column=7)
+        Button (header, text="Hide Expenses", width = 15, font = 'mono -20 bold',
+                command=self.destroy_Break_Down).grid(row=3, column=6) 
         
         #/Header >>>
         
 
-        self.combo(header)  #Combo box
+        #self.combo(header)  #Combo box
 ##        Button(self.bottom, text='QUIT', fg='red', font='arial -18 bold',
 ##               command=self.quitMessage).grid(row=3, column=3,)
         
@@ -92,7 +102,7 @@ class TaskGUI():
         
         Label(self.fieldList,width=18,text='Staff Name',font='arial -20 bold').grid(row=1,column=2)
         Label(self.fieldList,width=8,text='Total Cost', font='arial -20 bold').grid(row=1,column=3)
-        Label (self.bottom,width=5,).grid(column=1,row=1) # Gap for Total Grand
+        Label(self.bottom,width=5,).grid(column=1,row=1) # Gap for Total Grand
         Label(self.bottom, text='Grand total:', font='arial -20 bold').grid(row=2, column=2, sticky=E)
         self.total = Label(self.bottom,width=9, font= 'arial -30 bold',  bg='lightblue')
         self.total.grid(row=2, column=3,sticky=E)
@@ -103,12 +113,7 @@ class TaskGUI():
         
         if self.processUsed == True:
             self.leftFrame.destroy()
-        filename=self.box.get() # gets value from self.box
-        if self.browseActive == True:
-            if self.check_combo(self.browsedFile) == True: # Add only to combo box
-                self.fileUsed.append(self.browsedFile)     # if not already Used
-            self.browseActive= False                # Resets browse button status
-            filename=self.browsedFile
+        filename=self.browsedFile # gets value from self.box
 
         self.reader=Demonstrator(filename)
         self.listAllStaff()
@@ -116,70 +121,40 @@ class TaskGUI():
         self.notify()
         self.processUsed = True
         
-
     def open_file(self):
         '''Ability to browse the file in your computer'''
         
         self.browsedFile = os.path.basename(askopenfilename(filetypes=[('','')]))
-        self.box.set(self.browsedFile) 
+        self.box['text']= self.browsedFile
         self.browseActive= True # To mark that this function has been used.
-
-    def check_combo(self,filename):
-        '''Check If file alreadi is in combo box'''
-
-        for file in self.fileUsed:
-            if file == filename:
-                return False
-        return True  
-        
-    def combo(self,frame):
-        '''Creates a Combo box and gives 3 default files'''
-        
-        self.box_value = StringVar()
-        self.box = ttk.Combobox(frame, textvariable=self.box_value,
-                                state='readonly') # Creates a combo box
-        self.fileUsed=['Demomax.xlsx'] # Default combo list
-        self.box['values'] = (self.fileUsed) 
-        self.box.current(0) # Current value
-        self.box.grid(row=3, column=2)
-    
+        self.process_file()
+  
     def myfunction(self,event):
         '''Creates Scroll bar for Canvas'''
         
-        self.staffCanvas.configure(scrollregion = self.staffCanvas.bbox("all"),width=312, height=400)
+        self.staffCanvas.configure(scrollregion = self.staffCanvas.bbox("all"),width=312, height=500)
 
-        
     def listAllStaff(self,):
         ''' Make a list of all staff '''
 
         self.leftFrame = Frame (self.mainBody,)
         self.leftFrame.grid(row=4,column=2, sticky = W)
         
-        self.leftCanvas(self.leftFrame)
+        self.leftCanvas()
         line=1
         self.var  = IntVar() #  Must be self. to disable hover.
         staffName = self.reader.staffName()
         for name in staffName:
             self.NameList  = Radiobutton (self.bodySummary, width=17, text= staffName[name], font= 'arial -20 bold',
                                bg='grey', anchor= W, variable = self.var, value = name, pady = 0,
-                                          ).grid(row=line, column=2, sticky=W)
+                                          command=self.break_Down).grid(row=line, column=2, sticky=W)
             amount = self.get_Total_Cost_By_Name(name)
             self.TotalCost = Label (self.bodySummary,pady=3, width=10, text="\u00A3"+str(amount), font= 'arial -20 bold',
                                 bg='grey', ancho=W).grid(row=line, column=3,)
             line +=1
 
-
-    def leftCanvas(self,frame,):
+    def leftCanvas(self):
         '''creates canvas for stafff'''
-
-        canvasCount = 1
-        self.staffCanvas = Canvas (frame,)  # 1
-        self.bodySummary = Frame (self.staffCanvas) #2
-        myscrollbar = Scrollbar(frame, orient="vertical", command=self.staffCanvas.yview) #3
-
-    def leftCanvas(self,frame):
-        '''creates canvas for stafff'''
-
 
         self.staffCanvas = Canvas (self.leftFrame,)  # 1
         self.bodySummary = Frame (self.staffCanvas) #2
@@ -188,16 +163,8 @@ class TaskGUI():
         myscrollbar.pack(side="right",fill='y') #5
         self.staffCanvas.pack(side="left") #6
         self.staffCanvas.create_window((0,0), window=self.bodySummary, anchor= 'nw')
-        frame.bind("<Configure>", self.myfunction)
-
-        #return mainFrame
-        #self.newCanvas + canvasCount == self.staffCanvas
-
-
-    #def middleCavas(self):
-
-        #self.leftFrame.bind("<Configure>", self.myfunction)
-
+        self.leftFrame.bind("<Configure>", self.myfunction)
+        self.leftFrame.bind("<Configure>", self.myfunction)
             
     def get_Total_Cost_By_Name(self,ID):
         '''Displays cost for each staff '''
@@ -212,38 +179,39 @@ class TaskGUI():
 
         if self.activeBR:
             self.destroy_Break_Down()
-        
-##        self.middleFrame(self.mainBody)
-##        self.middleFrame.grid(row=2, column=4, sticky=W )
+
+        #Label(self.mainBody).grid(row=4,)
+        self.middleFrame = Frame(self.mainBody)
+        self.middleFrame.grid(row=4, column=4, sticky=W )
             
         self.field     = Frame(self.mainBody,)      # Break down field
         self.field.grid(row=2, column=4, sticky = W)
-        self.body    = Frame(self.mainBody)         #Break down Content
-        self.body.grid(row=4,column=4, sticky=NW)
-
-        #self.createCanvas(self.body)
-        self.totalSummary = Frame(self.mainBody,)
-        self.totalSummary.grid(row=4, column= 5, sticky=N)
-
         
+        self.totalSummary = Frame(self.mainBody,)
+        self.totalSummary.grid(row=4, column= 6, sticky=N)
+
+        self.fieldSummary =Frame(self.mainBody,)
+        self.fieldSummary.grid(row=2, column=6, sticky= W)
+
         self.activeBR = True
         self.staffID = self.var.get()
 
-        Label(self.field,width=10,text='Date', font='arial -20 bold').grid(row=1,column=1)
-        Label(self.field,width=10,text='Location', font='arial -20 bold').grid(row=1,column=2)
-        Label(self.field,width=15,text='Reason', font='arial -20 bold').grid(row=1,column=3)
-        Label(self.field,width=10,text='Cost', font='arial -20 bold').grid(row=1,column=4)
+        Label(self.field,width=11,text='Date', font='arial -20 bold',anchor=W).grid(row=1,column=1)
+        Label(self.field,width=10,text='Location', font='arial -20 bold',anchor=W).grid(row=1,column=2)
+        Label(self.field,width=13,text='Reason', font='arial -20 bold',anchor=W).grid(row=1,column=3)
+        Label(self.field,width=10,text='Cost', font='arial -20 bold',anchor=W).grid(row=1,column=4)
 
-        Label(self.fieldSummary,width=20).grid(row=1,column=0)
-        Label(self.fieldSummary, width=10, text='Reason', font='arial -20 bold').grid(row=1, column=1)
-        Label(self.fieldSummary, width=10, text='Total', font =' arial -20 bold').grid(row=1, column=2)
+        Label(self.mainBody,width=3,bg='blue').grid(row=2,column=5) # GAP from Expences and Spending Type
+        Label(self.fieldSummary, width=13, text='Reason', font='arial -20 bold',anchor=W).grid(row=1, column=1)
+        Label(self.fieldSummary, width=13, text='Total', font =' arial -20 bold',anchor=W).grid(row=1, column=2)
 
         self.work_out_rows()
         self.spendingType()
 
     def work_out_rows(self,):
         '''Generates list of rows'''
-        
+
+        self.expenseCanvas()
         staff_List = self.reader.displayStaff_Names()
         line =2
         for row in  staff_List:
@@ -255,22 +223,38 @@ class TaskGUI():
                 cost =row[index+4]
                 self.add_row(date, location, reason, cost,line)
                 line +=1
-            
-        
-
         
     def add_row(self,date,location, reason,cost,line):
         '''Place values in break down list '''        
-            
-        self.date = Label(self.body,width=10, text=date, font='arial -20 bold',bg='grey')
+    
+        self.date = Label(self.body,width=11, text=date, font='arial -20 bold',bg='grey',anchor=W)
         self.date.grid(row=line,column=1)
-        self.location =Label(self.body,width=10, text=location, font='arial -20 bold', bg='grey')
+        self.location =Label(self.body,width=10, text=location, font='arial -20 bold', bg='grey',anchor=W)
         self.location.grid(row=line,column=2)
-        self.reason = Label(self.body,width=15, text=reason, font='arial -20 bold',bg='grey')
+        self.reason = Label(self.body,width=13, text=reason, font='arial -20 bold',bg='grey',anchor=W)
         self.reason.grid(row=line,column=3)
-        self.cost = Label(self.body,width=10, text="\u00A3"+str(cost), font='arial -20 bold',bg='grey')
+        self.cost = Label(self.body,width=10, text="\u00A3"+str(cost), font='arial -20 bold',bg='grey',anchor=W)
         self.cost.grid(row=line,column=4)
 
+    def expenseCanvas(self,):
+        '''creates canvas for expenses'''
+  
+        self.exCanvas = Canvas(self.middleFrame)  # 1
+        self.body = Frame(self.exCanvas) #2
+        myscrollbar = Scrollbar(self.middleFrame, orient="vertical", command=self.exCanvas.yview) #3
+        self.exCanvas.configure(yscrollcommand = myscrollbar.set) #4
+        myscrollbar.pack(side='right',fill='y') #5
+        self.exCanvas.pack(side='left') #6
+        self.exCanvas.create_window((0,0), window=self.body, anchor='nw',)
+        self.body.bind('<Configure>', self.myFunction2)
+
+        #self.staffCanvas.create_window((0,0), window=self.bodySummary, anchor= 'nw')
+
+        
+    def myFunction2(self,event):
+        self.exCanvas.configure(scrollregion=self.exCanvas.bbox("all"),width=550,height=500)
+        
+        
     def spendingType(self,):
         '''Create a summary of spendings'''
 
@@ -278,10 +262,10 @@ class TaskGUI():
         Label(self.totalSummary,width=20,).grid(row=1,column=0)
         expense = self.reader.displaySpendings(self.staffID)
         for key in expense:
-            self.spend = Label(self.totalSummary, width=10, text=key, font='arial -20 bold', bg='grey')                    
-            self.spend.grid(row=line,column=1,sticky=N)
-            self.CostSum = Label(self.totalSummary,width=10, text=expense[key], font='arial -20 bold', bg='grey')                
-            self.CostSum.grid(row=line,column=2,sticky=N)
+            self.spend = Label(self.totalSummary, width=13, text=key, font='arial -20 bold', bg='grey',anchor=W)                    
+            self.spend.grid(row=line,column=0,sticky=N)
+            self.CostSum = Label(self.totalSummary,width=13, text="\u00A3"+str(expense[key]), font='arial -20 bold', bg='grey',anchor=W)                
+            self.CostSum.grid(row=line,column=1,sticky=N)
             line +=1
             
     def destroy_Break_Down(self):
@@ -290,6 +274,7 @@ class TaskGUI():
         self.body.destroy()
         self.field.destroy()
         self.totalSummary.destroy()
+        self.fieldSummary.destroy()
 
     def notify(self):
         ''' Get the value from each question to display them on screen '''
@@ -306,10 +291,14 @@ class TaskGUI():
 
 if __name__ == "__main__":
     top =Tk()
-    top.geometry('10920x1080')
+    user32=ctypes.windll.user32
+    screenSize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    height=screenSize[0]
+    width=screenSize[1]
+    top.geometry(str(height)+"x"+str(width))
     top.title("Stella")
     top.grid()
     
-    app = TaskGUI(top)
+    app = TaskGUI(top,height,width)
 
     top.mainloop()

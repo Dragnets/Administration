@@ -17,8 +17,9 @@ class TaskGUI():
         self.browseActive   = False     # Indicate that btn browse have not been used.
         self.activeBR       = False     # Idicate wether break down have been used.
         self.processUsed    = False     # Idicate wether calculation have been done.
+        self.leftScrolBar   = False     # Idicate wther staf list scrollbar is on/off
         self.scrolBarActive = False     # Indicate wether Expense scrollbar is on/off
-        self.canvasID = 1
+        #self.canvasID = 1
         
         # FRAMES Below >>>
         #master= Frame(top,width=1000,height=height,bg='red')
@@ -26,7 +27,7 @@ class TaskGUI():
         logoFrame = Frame(master,bg='white')
         logoFrame.grid(row=0,column=1,sticky=W)
 
-        logo2Frame = Frame(master,bg='red',width=230, height=38)
+        logo2Frame = Frame(master,bg='white',width=230, height=38)
         logo2Frame.place(x=width-300,y=height-150,)
         title     = Frame(master, bg='white')
         title.grid(row=1,column=2,sticky = W)
@@ -35,7 +36,7 @@ class TaskGUI():
         
         self.mainBody  = Frame(master,bg='white')
         self.mainBody.grid(row=3, column=1, sticky=W)
-        gap       = Frame(self.mainBody,width=100,height=20,bg='white')# Under Filename:
+        gap       = Frame(self.mainBody,width=60,height=20,bg='white')# Under Filename: GAP
         gap.grid(column=1, sticky= W)
 
         gapBR     = Frame(self.mainBody, width=20,bg='white') # gap between Staff list & Expense list
@@ -55,8 +56,8 @@ class TaskGUI():
         # /Content
         
         # SUMMAARY
-        self.gapSUM = Frame(self.mainBody, width=10, bg='white')
-        self.gapSUM.grid(row= 1, column=4)
+##        self.gapSUM = Frame(self.mainBody, width=10, bg='red')
+##        self.gapSUM.grid(row= 1, column=4)
         #/SUMMARY
         
         #/Frame >>>borderwidth = -2
@@ -106,6 +107,10 @@ class TaskGUI():
         
         if self.processUsed == True:
             self.leftFrame.destroy()
+            if self.leftScrolBar:
+                self.myscrollbar.destroy()
+                leftScrolBar = False
+
         filename=self.browsedFile # gets value from self.box
 
         self.reader=Demonstrator(filename)
@@ -116,7 +121,7 @@ class TaskGUI():
         
     def open_file(self):
         '''Ability to browse the file in your computer'''
-        
+            
         self.browsedFile = os.path.basename(askopenfilename(filetypes=[('','')]))
         self.box['text']= self.browsedFile
         self.browseActive= True # To mark that this function has been used.
@@ -145,19 +150,22 @@ class TaskGUI():
             self.TotalCost = Label (self.bodySummary,pady=3, width=10, text="\u00A3"+str(amount), font= 'arial -20 bold',
                                 bg='grey', ancho=W).grid(row=line, column=3,)
             line +=1
+        print(line)
+        if line > 16:
+            self.myscrollbar = Scrollbar(self.leftFrame, orient="vertical", command=self.staffCanvas.yview) #3
+            self.staffCanvas.configure(yscrollcommand = self.myscrollbar.set) #4
+            self.myscrollbar.pack(side="right",fill='y') #5
+            self.leftScrolBar = True
 
     def leftCanvas(self):
         '''creates canvas for stafff'''
 
         self.staffCanvas = Canvas (self.leftFrame,)  # 1
         self.bodySummary = Frame (self.staffCanvas) #2
-        myscrollbar = Scrollbar(self.leftFrame, orient="vertical", command=self.staffCanvas.yview) #3
-        self.staffCanvas.configure(yscrollcommand = myscrollbar.set) #4
-        myscrollbar.pack(side="right",fill='y') #5
         self.staffCanvas.pack(side="left") #6
-        self.staffCanvas.create_window((0,0), window=self.bodySummary, anchor= 'nw')
-        self.leftFrame.bind("<Configure>", self.myfunction)
-        self.leftFrame.bind("<Configure>", self.myfunction)
+        self.staffCanvas.create_window((0,0), window=self.bodySummary, anchor= 'nw')#7
+        self.leftFrame.bind("<Configure>", self.myfunction) #8
+        #self.leftFrame.bind("<Configure>", self.myfunction)
             
     def get_Total_Cost_By_Name(self,ID):
         '''Displays cost for each staff '''
@@ -196,7 +204,7 @@ class TaskGUI():
 
         Label(self.mainBody,width=2,bg='white').grid(row=2,column=5) # GAP from Expences and Spending Type
         Label(self.fieldSummary, width=13, text='Reason', font='arial -20 bold',anchor=W,bg='white').grid(row=1, column=1)
-        Label(self.fieldSummary, width=13, text='Total', font =' arial -20 bold',anchor=W,bg='white').grid(row=1, column=2)
+        Label(self.fieldSummary, width=8, text='Total', font =' arial -20 bold',anchor=W,bg='white').grid(row=1, column=2)
 
         self.work_out_rows()
         self.spendingType()
@@ -258,7 +266,7 @@ class TaskGUI():
         for key in expense:
             self.spend = Label(self.totalSummary, width=13, text=key, font='arial -20 bold', bg='grey',anchor=W,)                    
             self.spend.grid(row=line,column=0,sticky=N)
-            self.CostSum = Label(self.totalSummary,width=13, text="\u00A3"+str(expense[key]), font='arial -20 bold', bg='grey',anchor=W)                
+            self.CostSum = Label(self.totalSummary,width=8, text="\u00A3"+str(expense[key]), font='arial -20 bold', bg='grey',anchor=W)                
             self.CostSum.grid(row=line,column=1,sticky=N)
             line +=1
             
@@ -297,7 +305,7 @@ if __name__ == "__main__":
     width=screenSize[0]
     height=screenSize[1]
     top.geometry(str(width)+"x"+str(height))
-    top.title("Stella")
+    top.title("LSBU Informatic Faculty")
     top.grid()
     
     app = TaskGUI(top,height,width)
